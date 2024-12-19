@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+	<AddIn Type="Command">
+		<Text>Command KssRevitApi2</Text>
+		<Description>KssRevitApi2</Description>
+		<Assembly>KssRevitApi\KssRevitApi2.dll</Assembly>
+		<FullClassName>KssRevitApi2.Command</FullClassName>
+		<ClientId>df506432-9a4c-44aa-93bd-cd90f2fb52ac</ClientId>
+		<VendorId>Kss</VendorId>
+		<VendorDescription>Kss</VendorDescription>
+	</AddIn>
+	<AddIn Type="Application">
+		<Name>Application KssRevitApi2</Name>
+		<Assembly>KssRevitApi\KssRevitApi2.dll</Assembly>
+		<FullClassName>KssRevitApi2.App</FullClassName>
+		<ClientId>ef65739d-ca13-43fb-bf9b-40b21fca99bb</ClientId>
+		<VendorId>Kss</VendorId>
+		<VendorDescription>Kss</VendorDescription>
+	</AddIn>
+</RevitAddIns>

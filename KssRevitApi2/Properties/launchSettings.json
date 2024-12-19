@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "KssRevitApi2": {
+      "commandName": "Project"
+    },
+    "RunRevit": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Autodesk\\Revit 2025\\Revit.exe"
+    }
+  }
+}
