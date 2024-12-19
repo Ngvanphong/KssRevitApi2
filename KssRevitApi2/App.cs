@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.UI;
+using KssRevitApi2.Buttons;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,12 +12,13 @@ namespace KssRevitApi2
     {
         public Result OnShutdown(UIControlledApplication application)
         {
+
             return Result.Succeeded;
         }
 
         public Result OnStartup(UIControlledApplication application)
         {
-           
+            new TestButtoncs().CreateTestButton(application);
             return Result.Succeeded;
         }
     }
