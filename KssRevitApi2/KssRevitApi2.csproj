@@ -11,15 +11,32 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Image\icons8-crop-16 %281%29.png" />
     <None Remove="Image\icons8-crop-24 %282%29.png" />
+    <None Remove="Image\icons8-crop-24 %283%29.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Image\icons8-crop-16 (1).png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Image\icons8-crop-24 (3).png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="AdWindows">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2025\AdWindows.dll</HintPath>
+    </Reference>
     <Reference Include="RevitAPI">
       <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2025\RevitAPI.dll</HintPath>
     </Reference>
     <Reference Include="RevitAPIUI">
       <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2025\RevitAPIUI.dll</HintPath>
+    </Reference>
+    <Reference Include="UIFramework">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2025\UIFramework.dll</HintPath>
     </Reference>
   </ItemGroup>
 

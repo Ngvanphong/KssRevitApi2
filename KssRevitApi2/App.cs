@@ -19,6 +19,9 @@ namespace KssRevitApi2
         public Result OnStartup(UIControlledApplication application)
         {
             new TestButtoncs().CreateTestButton(application);
+            new SplitButtons().CreateSplit(application);
+            new SmallButton().CreateSmallButton(application);
+            new CombineButtons().CreateCombine(application);
             return Result.Succeeded;
         }
     }
