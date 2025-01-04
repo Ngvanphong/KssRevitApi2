@@ -19,35 +19,35 @@ namespace KssRevitApi2.Test
             //IEnumerable<ElementId> ids = uiDoc.Selection.GetElementIds();
 
 
-            ////FamilyInstance column = null;
-            ////try
-            ////{
-            ////    Reference pickRef = uiDoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element, new ColumnFilter(), "Pick a column");
-            ////    column = doc.GetElement(pickRef) as FamilyInstance;
-            ////}
-            ////catch { }
+            //FamilyInstance column = null;
+            //try
+            //{
+            //    Reference pickRef = uiDoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element, new ColumnFilter(), "Pick a column");
+            //    column = doc.GetElement(pickRef) as FamilyInstance;
+            //}
+            //catch { }
 
-            ////BoundingBoxXYZ boundingBox = column.get_BoundingBox(null);
+            //BoundingBoxXYZ boundingBox = column.get_BoundingBox(null);
 
-            ////List<FamilyInstance> listColumn = new List<FamilyInstance>();
-            ////var listRefSelected = uiDoc.Selection.PickObjects(ObjectType.Element, new ColumnFilter(), "Pick a columns");
+            //List<FamilyInstance> listColumn = new List<FamilyInstance>();
+            //var listRefSelected = uiDoc.Selection.PickObjects(ObjectType.Element, new ColumnFilter(), "Pick a columns");
 
-            ////var selectdRef = uiDoc.Selection.PickElementsByRectangle(new ColumnFilter(), "Pick a column");
+            //var selectdRef = uiDoc.Selection.PickElementsByRectangle(new ColumnFilter(), "Pick a column");
 
-            ////var selecREf2= uiDoc.Selection.PickBox()
+            //var selecREf2 = uiDoc.Selection.PickBox()
 
 
             //FilteredElementCollector collection = new FilteredElementCollector(doc, doc.ActiveView.Id);
             //collection = collection.OfCategory(BuiltInCategory.OST_Walls).WhereElementIsNotElementType();
-            ////IEnumerable<Wall> walls = collection.ToElements().Cast<Wall>();
+            //IEnumerable<Wall> walls = collection.ToElements().Cast<Wall>();
 
-            ////List<Wall> listWallLevel2 = walls.Where(item =>
-            ////{
-            ////    Parameter paramter = item.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
-            ////    ElementId levelId = paramter.AsElementId();
-            ////    Level level = doc.GetElement(levelId) as Level;
-            ////    return level.Name == "L2";
-            ////}).ToList();
+            //List<Wall> listWallLevel2 = walls.Where(item =>
+            //{
+            //    Parameter paramter = item.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
+            //    ElementId levelId = paramter.AsElementId();
+            //    Level level = doc.GetElement(levelId) as Level;
+            //    return level.Name == "L2";
+            //}).ToList();
 
             //var level1 = new FilteredElementCollector(doc).OfClass(typeof(Level)).First(x => x.Name == "L1");
             //ElementId idPara = new ElementId(BuiltInParameter.WALL_HEIGHT_TYPE);
@@ -63,8 +63,13 @@ namespace KssRevitApi2.Test
             //Wall wallFirst = listWall.First() as Wall;
 
             //Parameter parameterLength = wallFirst.get_Parameter(BuiltInParameter.CURVE_ELEM_LENGTH);
-            //double lengthInch = parameterLength.AsDouble();
-            //double lengthMili = UnitUtils.ConvertFromInternalUnits(lengthInch, UnitTypeId.Millimeters);
+            double lengthInch = 2;// don vi inch
+
+
+            FormatOptions formatOption= doc.GetUnits().GetFormatOptions(SpecTypeId.Length);
+            double lengthDiplayUnit = UnitUtils.ConvertFromInternalUnits(lengthInch, formatOption.GetUnitTypeId());
+
+            
 
             //BoundingBoxXYZ boundingBox = wallFirst.get_BoundingBox(doc.ActiveView);
             //XYZ min = boundingBox.Min;
@@ -100,29 +105,29 @@ namespace KssRevitApi2.Test
             ////IEnumerable<Wall> walls = colleciton.OfClass(typeof(Wall)).Cast<Wall>();
 
 
-            FamilyInstance column = doc.GetElement(uiDoc.Selection.GetElementIds().First()) as FamilyInstance;
+            //FamilyInstance column = doc.GetElement(uiDoc.Selection.GetElementIds().First()) as FamilyInstance;
 
-            XYZ rightVector = doc.ActiveView.RightDirection;
-            XYZ upVector = doc.ActiveView.UpDirection;
-            XYZ viewVector = doc.ActiveView.ViewDirection;
+            //XYZ rightVector = doc.ActiveView.RightDirection;
+            //XYZ upVector = doc.ActiveView.UpDirection;
+            //XYZ viewVector = doc.ActiveView.ViewDirection;
 
-            XYZ vectorMove = new XYZ(-1, 0, 0) * 500 / 304.8;
-            using (Transaction t = new Transaction(doc, "MoveElment"))
-            {
-                t.Start();
-                ElementTransformUtils.MoveElement(doc, column.Id, vectorMove);
-                t.Commit();
-            }
+            //XYZ vectorMove = new XYZ(-1, 0, 0) * 500 / 304.8;
+            //using (Transaction t = new Transaction(doc, "MoveElement"))
+            //{
+            //    t.Start();
+            //    ElementTransformUtils.MoveElement(doc, column.Id, vectorMove);
+            //    t.Commit();
+            //}
 
-            Location locationCol = column.Location;
-            XYZ locationPoint = (locationCol as LocationPoint).Point;
-            Line lineAxis = Line.CreateUnbound(locationPoint, viewVector);
-            using(Transaction t2= new Transaction(doc, "Rotate"))
-            {
-                t2.Start();
-                ElementTransformUtils.RotateElement(doc, column.Id, lineAxis, Math.PI / 6);
-                t2.Commit();
-            }
+            //Location locationCol = column.Location;
+            //XYZ locationPoint = (locationCol as LocationPoint).Point;
+            //Line lineAxis = Line.CreateUnbound(locationPoint, viewVector);
+            //using(Transaction t2= new Transaction(doc, "Rotate"))
+            //{
+            //    t2.Start();
+            //    ElementTransformUtils.RotateElement(doc, column.Id, lineAxis, Math.PI / 6);
+            //    t2.Commit();
+            //}
 
 
             return Result.Succeeded;
