@@ -16,6 +16,7 @@ namespace KssRevitApi2.Test
             UIDocument uiDoc = commandData.Application.ActiveUIDocument;
             Document doc = uiDoc.Document;
 
+            #region comment
             //IEnumerable<ElementId> ids = uiDoc.Selection.GetElementIds();
 
 
@@ -63,13 +64,13 @@ namespace KssRevitApi2.Test
             //Wall wallFirst = listWall.First() as Wall;
 
             //Parameter parameterLength = wallFirst.get_Parameter(BuiltInParameter.CURVE_ELEM_LENGTH);
-            double lengthInch = 2;// don vi inch
+            //double lengthInch = 2;// don vi inch
 
 
-            FormatOptions formatOption= doc.GetUnits().GetFormatOptions(SpecTypeId.Length);
-            double lengthDiplayUnit = UnitUtils.ConvertFromInternalUnits(lengthInch, formatOption.GetUnitTypeId());
+            //FormatOptions formatOption= doc.GetUnits().GetFormatOptions(SpecTypeId.Length);
+            //double lengthDiplayUnit = UnitUtils.ConvertFromInternalUnits(lengthInch, formatOption.GetUnitTypeId());
 
-            
+
 
             //BoundingBoxXYZ boundingBox = wallFirst.get_BoundingBox(doc.ActiveView);
             //XYZ min = boundingBox.Min;
@@ -128,7 +129,68 @@ namespace KssRevitApi2.Test
             //    ElementTransformUtils.RotateElement(doc, column.Id, lineAxis, Math.PI / 6);
             //    t2.Commit();
             //}
+            #endregion
 
+            Wall wall = doc.GetElement(uiDoc.Selection.GetElementIds().First()) as Wall;
+            LocationCurve locationCurve = wall.Location as LocationCurve;
+            Curve curve = locationCurve.Curve;
+
+            //Arc arc = curve as Arc;
+            //XYZ pointCenter = arc.Center;
+
+            //XYZ viewVector = doc.ActiveView.ViewDirection.Normalize();
+            //Curve curveOfffset=  curve.CreateOffset(500 / 304.8, viewVector);
+
+            //Curve curveReverse = curve.CreateReversed();
+
+            //Transform transformRight1000 = Transform.CreateTranslation(doc.ActiveView.RightDirection.Normalize() * 1000 / 304.8);
+            //Curve cureMoveRight1000= curve.CreateTransformed(transformRight1000);
+
+
+            //Transform transformRotate45 = Transform.CreateRotationAtPoint(XYZ.BasisZ, Math.PI/4, pointCenter);
+
+            // Curve curveRotate = curve.CreateTransformed(transformRotate45);
+
+            //Transform tasnformMove = Transform.CreateTranslation(pointCenter-)
+
+
+            double startPara = curve.GetEndParameter(0);
+            XYZ startPoint = curve.GetEndPoint(0);
+            double endPara = curve.GetEndParameter(1);
+            XYZ endPoint = curve.GetEndPoint(1);
+
+            double rate = 1000 / 304.8 / curve.Length;
+            double startParaAfter = startPara - rate * (endPara - startPara);
+            double endParaAfter = endPara + rate * (endPara - startPara);
+
+
+            curve.MakeBound(startParaAfter, endParaAfter);
+
+            using (Transaction t = new Transaction(doc, "RotateWall"))
+            {
+                t.Start();
+                (wall.Location as LocationCurve).Curve = curve;
+                t.Commit();
+            }
+            //ElementTransformUtils.RotateElement(doc, wall.Id, )
+            Curve curve2 = null;
+            SetComparisonResult compareResult = curve.Intersect(curve2, out IntersectionResultArray resultArray);
+            if (compareResult == SetComparisonResult.Overlap)
+            {
+                for (int i = 0; i < resultArray.Size; i++)
+                {
+                    XYZ pontIntersect = resultArray.get_Item(i).XYZPoint;
+                }
+            }
+
+
+
+            XYZ pointAtCenter= curve.Evaluate((startPara+ endPara)/2,false);
+            Transform derivative = curve.ComputeDerivatives((startPara + endPara) / 2, false);
+            XYZ vectorM=  derivative.BasisX.Normalize() * 1000 / 304.8;
+            Transform transformM = Transform.CreateTranslation(vectorM);
+
+            var listCopy= ElementTransformUtils.CopyElement(doc, wall.Id, new XYZ(1000 / 304, 0, 0));
 
             return Result.Succeeded;
         }
@@ -138,7 +200,7 @@ namespace KssRevitApi2.Test
     {
         public bool AllowElement(Element elem)
         {
-            if(elem.Category != null && elem.Category.Id.Value == (long)BuiltInCategory.OST_StructuralColumns)
+            if (elem.Category != null && elem.Category.Id.Value == (long)BuiltInCategory.OST_StructuralColumns)
             {
                 return true;
             }
