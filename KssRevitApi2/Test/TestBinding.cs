@@ -182,15 +182,19 @@ namespace KssRevitApi2.Test
                     XYZ pontIntersect = resultArray.get_Item(i).XYZPoint;
                 }
             }
-
-
-
             XYZ pointAtCenter= curve.Evaluate((startPara+ endPara)/2,false);
             Transform derivative = curve.ComputeDerivatives((startPara + endPara) / 2, false);
             XYZ vectorM=  derivative.BasisX.Normalize() * 1000 / 304.8;
             Transform transformM = Transform.CreateTranslation(vectorM);
-
             var listCopy= ElementTransformUtils.CopyElement(doc, wall.Id, new XYZ(1000 / 304, 0, 0));
+            Curve curve1 = null;
+            double offset = 1000 / 304.8;
+            double paraStart = curve1.GetEndParameter(0);
+            double paraEnd = curve1.GetEndParameter(1);
+            double rateLeft = (curve1.Length / 2 - offset) / curve1.Length;
+            double paraLeft = paraStart + rateLeft * (paraEnd - paraStart);
+
+            XYZ pointLEft = curve1.Evaluate(paraLeft, false);
 
             return Result.Succeeded;
         }
