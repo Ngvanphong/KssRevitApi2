@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using UIFramework;
 using KssRevitApi2.Properties;
+using KssRevitApi2.CreateColumns;
 namespace KssRevitApi2.Buttons
 {
     internal class TestButtoncs
@@ -44,7 +45,7 @@ namespace KssRevitApi2.Buttons
             }
 
             PushButtonData pushButtonData = new PushButtonData("TestKss", "Test \n Revit Api",
-                Assembly.GetExecutingAssembly().Location, typeof(TestBinding).FullName);
+                Assembly.GetExecutingAssembly().Location, typeof(CreateColumnBinding).FullName);
             pushButtonData.LongDescription = "Long Description";
             //pushButtonData.ToolTipImage= new BitmapImage(new Uri("/KssRevitApi2;component/Image/icons8-crop-24 (2).png", UriKind.RelativeOrAbsolute));
 
