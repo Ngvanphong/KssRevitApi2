@@ -47,7 +47,7 @@ namespace KssRevitApi2.CreateColumns
 
             Curve curve3 = Line.CreateBound(curve2.GetEndPoint(1), curve4.GetEndPoint(0));
 
-       
+           
 
 
 
