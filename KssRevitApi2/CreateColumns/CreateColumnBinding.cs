@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 using System;
 using System.Collections.Generic;
@@ -17,71 +18,212 @@ namespace KssRevitApi2.CreateColumns
             UIDocument uiDoc = commandData.Application.ActiveUIDocument;
             Document doc = commandData.Application.ActiveUIDocument.Document;
 
-            List<Curve> listCurveEdge = new List<Curve>();
+            Element foundation = doc.GetElement(uiDoc.Selection.GetElementIds().First());
+
+            Options option = new Options();
+            option.IncludeNonVisibleObjects = false;
+            option.DetailLevel = ViewDetailLevel.Medium;
+            option.ComputeReferences = true;
+
+            GeometryElement geoElement = foundation.get_Geometry(option);
+            List<Solid> listSolid = new List<Solid>();
+            foreach (GeometryObject geoObj in geoElement)
+            {
+                Solid solid = geoObj as Solid;
+                if (solid != null && solid.Volume > 0.000001)
+                {
+                    listSolid.Add(solid);
+                }
+            }
+
+
+            PlanarFace bottomFace = null;
+            foreach (Solid solid in listSolid)
+            {
+                foreach (Face face in solid.Faces)
+                {
+                    if (face is PlanarFace plannarFace)
+                    {
+                        XYZ normalFace = plannarFace.FaceNormal.Normalize();
+                        double dotProduct = normalFace.DotProduct(XYZ.BasisZ);
+                        if (Math.Abs(dotProduct + 1) < 0.00001)
+                        {
+                            bottomFace = plannarFace;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            CurveLoop curveloopBot = bottomFace.GetEdgesAsCurveLoops().OrderByDescending(x => x.GetExactLength()).First();
+
+            double rebarCover = 50 / 304.8;
+            double diameterRebarCover = 13 / 304.8;
+
+            ElementType typeFounation = doc.GetElement(foundation.GetTypeId()) as ElementType;
+
+            double thickness = typeFounation.get_Parameter(BuiltInParameter.FLOOR_ATTR_DEFAULT_THICKNESS_PARAM).AsDouble();
+
+            Transform transformToTop = Transform.CreateTranslation(XYZ.BasisZ * thickness);
+            CurveLoop curveloopTop = CurveLoop.CreateViaTransform(curveloopBot, transformToTop);
+
+            CurveLoop curveloopBotRebarOffset = CurveLoop.CreateViaOffset(curveloopBot, diameterRebarCover + rebarCover, -XYZ.BasisZ);
+            CurveLoop curveloopTopRebarOffset = CurveLoop.CreateViaOffset(curveloopTop, diameterRebarCover + rebarCover, XYZ.BasisZ);
+
+            XYZ direcitonRebar1 = null;
+            Line lineDiretionBot1 = null;
+            double spaing1 = 150 / 304.8;
+
+            int indexLineFirst = 0;
+            foreach (Curve curve in curveloopBotRebarOffset)
+            {
+                if (curve is Line line)
+                {
+                    direcitonRebar1 = line.Direction.Normalize();
+                    lineDiretionBot1 = line;
+                    break;
+                }
+                indexLineFirst++;
+            }
+
+            Line lineDirectionTop1 = null;
+            int index = 0;
+            foreach (Curve curve in curveloopTopRebarOffset)
+            {
+
+                if (index == indexLineFirst)
+                {
+                    lineDirectionTop1 = curve as Line;
+                    break;
+                }
+                index++;
+            }
+
+            double maxDistance = 0;
+            XYZ point = curveloopBot.First().GetEndPoint(0);
+            foreach (Curve curve in curveloopBot)
+            {
+                XYZ p1 = curve.GetEndPoint(0);
+                XYZ p2 = curve.GetEndPoint(1);
+                double d1 = p1.DistanceTo(point);
+                double d2 = p2.DistanceTo(point);
+                if (d1 > maxDistance) maxDistance = d1;
+                if (d2 > maxDistance) maxDistance = d2;
+            }
+
+            double extend = maxDistance / 2;
+
+            double totalOffset = 0;
+            XYZ directionSpacing1 = -direcitonRebar1.CrossProduct(-XYZ.BasisZ).Normalize();
+            List<List<Curve>> arrayListCurve = new List<List<Curve>>();
             while (true)
             {
-                try
+                Line lineBotOffset = lineDiretionBot1;
+                Line lineTopOffset = lineDirectionTop1;
+                if (totalOffset > 0)
                 {
-                    Reference pickRef = uiDoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Edge, "Pick edge of host");
-                    Edge edge = doc.GetElement(pickRef).GetGeometryObjectFromReference(pickRef) as Edge;
-                    if (edge != null && edge.AsCurve() != null) listCurveEdge.Add(edge.AsCurve());
-                }
-                catch { break; }
-            }
-            List<Curve> listCurveOrder = new List<Curve>();
+                    Transform transform = Transform.CreateTranslation(directionSpacing1 * totalOffset);
+                    lineBotOffset = lineDiretionBot1.CreateTransformed(transform) as Line;
+                    lineTopOffset = lineDirectionTop1.CreateTransformed(transform) as Line;
+                    ExtendLine(ref lineBotOffset, extend);
+                    ExtendLine(ref lineTopOffset, extend);
 
-            XYZ startPointCurvelop = null;
-            foreach (Curve curve in listCurveEdge)
-            {
-                List<XYZ> listPointCurve = new List<XYZ> { curve.GetEndPoint(0), curve.GetEndPoint(1) };
-                foreach (XYZ point in listPointCurve)
-                {
-                    bool hasStart = true;
-                    foreach (Curve curveCheck in listCurveEdge)
+                    XYZ pointInter1 = null;
+                    XYZ pointerInter2 = null;
+                    foreach (Curve curve in curveloopBotRebarOffset)
                     {
-                        if (curveCheck == curve) continue;
-                        List<XYZ> listPointCheck = new List<XYZ> { curveCheck.GetEndPoint(0), curveCheck.GetEndPoint(1) };
-                        foreach (XYZ pointCheck in listPointCheck)
+                        lineBotOffset.Intersect(curve, out IntersectionResultArray resultArray);
+                        if (resultArray != null && resultArray.Size == 1)
                         {
-                            if (point.IsAlmostEqualTo(pointCheck,0.0001))
+                            if (pointInter1 == null)
                             {
-                                hasStart = false;
-                                break;
+                                pointInter1 = resultArray.get_Item(0).XYZPoint;
+                            }
+                            else
+                            {
+                                pointerInter2 = resultArray.get_Item(0).XYZPoint;
                             }
                         }
-                        if (!hasStart) break;
                     }
-                    if (hasStart)
+
+                    XYZ pointTopInter1 = null;
+                    XYZ pointerTopInter2 = null;
+                    foreach (Curve curve in curveloopTopRebarOffset)
                     {
-                        startPointCurvelop = point;
-                        break;
+                        lineBotOffset.Intersect(curve, out IntersectionResultArray resultArray);
+                        if (resultArray != null && resultArray.Size == 1)
+                        {
+                            if (pointTopInter1 == null)
+                            {
+                                pointTopInter1 = resultArray.get_Item(0).XYZPoint;
+                            }
+                            else
+                            {
+                                pointerTopInter2 = resultArray.get_Item(0).XYZPoint;
+                            }
+                        }
                     }
 
+                    if (pointInter1 == null || pointerInter2 == null) break;
+
+                    Line lineInter1 = Line.CreateBound(pointInter1, pointerInter2);
+                    Line lineInter2 = Line.CreateBound(pointTopInter1, pointerTopInter2);
+                    if (!lineInter1.Direction.Normalize().IsAlmostEqualTo(lineInter2.Direction.Normalize(), 0.000001))
+                    {
+                        lineInter2 = lineInter2.CreateReversed() as Line;
+                    }
+
+                    Line line1 = Line.CreateBound(lineInter1.GetEndPoint(0), lineInter2.GetEndPoint(0));
+                    Line line2 = Line.CreateBound(lineInter1.GetEndPoint(0), lineInter1.GetEndPoint(1));
+                    Line line3 = Line.CreateBound(lineInter1.GetEndPoint(1), lineInter1.GetEndPoint(1));
+                    arrayListCurve.Add(new List<Curve> { line1, line2, line3 });
                 }
-                if (startPointCurvelop != null) break;
+                else
+                {
+                    Line line1 = Line.CreateBound(lineBotOffset.GetEndPoint(0), lineTopOffset.GetEndPoint(0));
+                    Line line2 = Line.CreateBound(lineTopOffset.GetEndPoint(0), lineTopOffset.GetEndPoint(1));
+                    Line line3 = Line.CreateBound(lineTopOffset.GetEndPoint(1), lineBotOffset.GetEndPoint(1));
+                    arrayListCurve.Add(new List<Curve> { line1, line2, line3 });
+                }
+
+
+
+
 
             }
 
-            CurveLoop curveloop = new CurveLoop();
-            XYZ pointNext = startPointCurvelop;
-            foreach(Curve  curve in listCurveEdge)
-            {
-                XYZ sp = curve.GetEndPoint(0);
-                XYZ ep= curve.GetEndPoint(1);
-                if(sp.IsAlmostEqualTo(pointNext, 0.0001))
-                {
-                    curveloop.Append(curve);
-                }
-                if(ep.IsAlmostEqualTo(pointNext, 0.0001))
-                {
-                    Curve curveRevert = curve.CreateReversed();
-                }
-            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            XYZ directionRebar2 = direcitonRebar1.CrossProduct(XYZ.BasisZ).Normalize();
+
+
+
+
 
 
 
 
             return Result.Succeeded;
+        }
+
+        public static void ExtendLine(ref Line curve, double extend)
+        {
+            double sp = curve.GetEndParameter(0); double ep = curve.GetEndParameter(1);
+            double rate = extend / curve.Length;
+            curve.MakeBound(sp - rate * (ep - sp), ep + rate * (ep - sp));
         }
     }
 }

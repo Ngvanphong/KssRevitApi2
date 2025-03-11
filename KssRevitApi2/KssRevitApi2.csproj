@@ -61,6 +61,10 @@
     <Resource Include="Image\icons8-crop-24 (2).png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="SaveFamily\" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="if exist &quot;$(AppData)\Autodesk\REVIT\Addins\2025&quot; copy &quot;$(ProjectDir)*.addin&quot; &quot;$(AppData)\Autodesk\REVIT\Addins\2025&quot;&#xD;&#xA;if exist &quot;$(AppData)\Autodesk\REVIT\Addins\2025\KssRevitApi&quot; copy &quot;$(ProjectDir)$(OutputPath)*.dll&quot; &quot;$(AppData)\Autodesk\REVIT\Addins\2025\KssRevitApi&quot;" />
   </Target>
