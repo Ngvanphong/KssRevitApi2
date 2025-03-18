@@ -90,10 +90,25 @@ namespace KssRevitApi2.CreateColumns
             }
 
 
+            Floor floor = null;
+            //floor.get_Parameter(BuiltInParameter.);
+            floor.LookupParameter("Para1");
+            //TagMode.
+            ///.Revit.DB.IndependentTag.Create()
 
+            //UnitUtils.Convert()
+            //BoundingBoxIntersectsFilter boxInter= new BoundingBoxIntersectsFilter()
+            foreach(Parameter para in floor.Parameters)
+            {
+                Definition definition = para.Definition;
+                if (definition != null)
+                {
+                    if(definition.GetDataType().TypeId == SpecTypeId.Volume.TypeId)
+                    {
 
-
-
+                    }
+                }
+            }
 
 
             return Result.Succeeded;
