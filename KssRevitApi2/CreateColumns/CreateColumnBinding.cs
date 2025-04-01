@@ -58,11 +58,40 @@ namespace KssRevitApi2.CreateColumns
             }
 
 
+            doc.LoadFamilySymbol(string.Empty, "NameType", new LoadFamilyOpiton(), out FamilySymbol symbol);
+
+            FamilySymbol familySymbol = null;
+            if (!familySymbol.IsActive) familySymbol.Activate();
+
+            Family family = null;
+            Document familyDoc= doc.EditFamily(family);
+            familyDoc.Close();
+
+
+            //familyDoc.FamilyCreate.NewExtrusion()
+
+  
+
 
             return Result.Succeeded;
         }
 
        
+    }
+    public class LoadFamilyOpiton : IFamilyLoadOptions
+    {
+        public bool OnFamilyFound(bool familyInUse, out bool overwriteParameterValues)
+        {
+            overwriteParameterValues = true;
+            return true;
+        }
+
+        public bool OnSharedFamilyFound(Family sharedFamily, bool familyInUse, out FamilySource source, out bool overwriteParameterValues)
+        {
+            overwriteParameterValues = true;
+            source = FamilySource.Family;
+            return true;
+        }
     }
     public class WarningHandle : IFailuresPreprocessor
     {
