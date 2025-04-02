@@ -1,0 +1,14 @@
+name: Mirror to another GitHub repo
+
+on:
+  workflow_dispatch:  # chạy thủ công
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone source repo (bare)
+        run: |
+          git clone --bare https://github.com/${{ github.repository }} source-repo.git
+          cd source-repo.git
+          git push --mirror https://${{ secrets.TARGET_REPO_TOKEN }}@github.com/ngvanphongdev/KssRevitApi2.git
